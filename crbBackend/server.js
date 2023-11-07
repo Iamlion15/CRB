@@ -1,15 +1,22 @@
-const express=require("express");
+const express=require("express")
 const cors=require("cors")
 const dbConnect=require("./src/database/db")
-const statusRoutes=require("./src/routes/crbRoute")
 const app=express();
-//connecting the db
+const collateralRoutes=require("./src/routes/collateralRoutes")
+const corporateRoutes=require("./src/routes/corporateRoutes")
+const crbRoutes=require("./src/routes/crbRoutes")
+
+//connect to the database 
 dbConnect();
+//middlewares
+app.use(express.json())
+app.use(cors({origin:"*"}));
 
-app.use(cors({origin:"*"}))
-app.use(express.json());
-app.use("/api/",statusRoutes)
 
-app.listen(8000,()=>{
-    console.log("server listening on 8000 ")
+app.use("/api/collateral",collateralRoutes)
+app.use("/api/corporate",corporateRoutes)
+app.use("/api/crb",crbRoutes)
+
+app.listen(2000,()=>{
+    console.log("server started successfully");
 })

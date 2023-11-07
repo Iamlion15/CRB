@@ -1,19 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import readXlsxFile from 'read-excel-file';
 import axios from "axios";
-import MyModal from "./tokenExpiredModal";
-import ErrorModal from "./errorModal";
-import ErrorTable from "./errorTable";
-import SuccessTable from "./successTable";
-import StatisticsDisplay from "./statisticsDisplay";
-import TokenTimer from "./tokenTimer";
-import ChooseFile from "./ChooseFile_progressBar";
-import ChecklFileFormat from "../Helpers/checkFileFormat";
+import MyModal from "../Modals/tokenExpiredModal";
+import ErrorModal from "../Modals/errorModal";
+import ErrorTable from "../TableStatusComponents/errorTable";
+import SuccessTable from "../TableStatusComponents/successTable";
+import StatisticsDisplay from "../stats_Timer/collateralStatisticsDisplay";
+import TokenTimer from "../stats_Timer/tokenTimer";
+import ChooseFile from "../FileOperations/ChooseFile_progressBar";
+import { SaveStatus, readStatus } from "../../Helpers/save_read_Status";
+import ChecklFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
-const FileUpload = () => {
+const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
     //file is used to store the file we are going to send
     //displayFuile is used to store the name of the file for showing it onthe interface
     //loading is a boolean state used to show success table when data is being sent
@@ -28,19 +29,19 @@ const FileUpload = () => {
     const [file, setFile] = useState([]);
     const [displayFile, setDisplayFile] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [onStart, setOnStart] = useState(false)
     const [showAdding, setShowAdding] = useState(true)
     const [successInfo, setSuccessInfo] = useState([])
     const [errorInfo, setErrorInfo] = useState([]);
     const [errorData, setErrorData] = useState([]);
     const [percentage, setPercentage] = useState('0')
     const [showDownload, setShowDownload] = useState(false);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
     const [isFileFormatNotValid, setIsFileFormatNotValid] = useState(false)
     const [errorModalIsOpen, setErrorModalIsOpne] = useState(false)
     const [showSuccessTable, setShowSuccessTable] = useState(false)
     const [showPostingButton, setShowPostingButton] = useState(false);
     const [hasSendingStarted, setHasSendingStarted] = useState(false)
-    const [displayMenu,SetDisplayMenu]=useState(false);
+    const [displayMenu, SetDisplayMenu] = useState(false);
     const [showErrorTable, setShowErrorTable] = useState(false)
     const [fileErrorMessage, setFileErrorMessage] = useState('')
     const [statistics, setStatistics] = useState({
@@ -67,13 +68,12 @@ const FileUpload = () => {
             readXlsxFile(selectedFile)
                 .then((rows) => {
                     // Handle the data from the Excel file (rows)
-                    const collateralFormat = ["Account Number", "Collateral Expiry Date", "Collateral Value", "Collateral Last Valuation Date", "Collateral Type"]
+                    const collateralFormat = ["Account Number", "Collateral Expiry Date", "Collateral Value", "Collateral Last Valuation Date", "Collateral Type", "Collateral Id"]
                     const match = ChecklFileFormat(rows, collateralFormat)
                     if (match) {
                         setShowAdding(false)
                         setFile(rows)
                         setShowPostingButton(true);
-                        console.log(rows)
                     } else {
                         setFileErrorMessage("INVALID FILE FORMAT,FILE FORMAT DONT MATCH COLLATERAL FILE FORMAT")
                         setShowAdding(false)
@@ -95,19 +95,21 @@ const FileUpload = () => {
         e.preventDefault()
         setShowAdding(true)
         setLoading(false)
-        setShowDownload(false);
         setDisplayFile(null)
         setShowSuccessTable(false)
-        setShowErrorTable(false)
         SetDisplayMenu(false)
         setIsFileFormatNotValid(false)
         setFileErrorMessage('')
         successInfo.length = 0
-        errorInfo.length = 0
         setStatistics({
             successNumber: '0',
             errorNumber: '0'
         })
+        if (!onStart) {
+            setShowDownload(false);
+            setShowErrorTable(false)
+            errorInfo.length = 0
+        }
     }
     //toggleModal is used to open up the modal that get shown when the token has expired
     const toggleModal = () => {
@@ -158,27 +160,160 @@ const FileUpload = () => {
         errorData.length = 0
         setStatistics({ errorNumber: '0', successNumber: '0' })
         setShowDownload(false)
-        const recordType = "CR"
+        const recordType = "CI "
         const token = localStorage.getItem("token")
-        const collateralInformationRecord = {
+        //DATA STRUCTURE
+        const corporateInformationRecord = {
+            institutionName: "",
+            tradingName: "",
+            taxNo: "",
+            vatNo: "",
+            companyRegNo: "",
+            companyRegistrationDate: "",
+            companyCeaseDate: "",
+            industry: "",
+            postalAddressLine1: "",
+            postalAddressLine2: "",
+            postalCode: "",
+            physicalAddressLine1: "",
+            physicalAddressLine2: "",
+            physicalAddressPostalCode: "",
+            physicalAddressPlotNumber: "",
+            physicalAddressProvince: "",
+            physicalAddressDistrict: "",
+            physicalAddressSector: "",
+            physicalAddressCell: "",
+            country: "",
+            emailAddress: "",
+            telephone1: "",
+            telephone2: "",
+            telephone3: "",
+            telephone4: "",
+            telephone5: "",
+            telephone6: "",
+            facsimile1: "",
+            facsimile2: "",
             accountNumber: "",
-            collateralExpiryDate: "",
-            collateralLastValuationDate: "",
-            collateralType: "",
-            collateralValue: ""
-        }
+            oldAccountNumber: "",
+            accountType: "",
+            accountStatus: "",
+            classification: "",
+            accountOwner: "",
+            jointLoanParticipants: "",
+            currencyType: "",
+            dateOpened: "",
+            dateUpdated: "",
+            termsDuration: "",
+            repaymentTerm: "",
+            openingBalanceCreditLimit: "",
+            currentBalance: "",
+            availableCredit: "",
+            currentBalanceIndicator: "",
+            scheduledMonthlyPaymentAmount: "",
+            actualPaymentAmount: "",
+            amountPastDue: "",
+            installmentsInArrears: "",
+            daysInArrears: "",
+            dateClosed: "",
+            lastPaymentDate: "",
+            interestRate: "",
+            firstPaymentDate: "",
+            nature: "",
+            category: "",
+            sectorOfActivity: "",
+            approvalDate: "",
+            finalPaymentDate: ""
+        };
+
+        // You can access and update the fields of the corporateInformationRecord object as needed.        
         const tokenPrep = token.replace(/"/g, '');
         const authKey = `Bearer ${tokenPrep}`
         for (let i = 1; i < file.length; i++) {
             setHasSendingStarted(true)
-            collateralInformationRecord.accountNumber = file[i][0]
-            collateralInformationRecord.collateralExpiryDate = file[i][1]
-            collateralInformationRecord.collateralValue = file[i][2]
-            collateralInformationRecord.collateralLastValuationDate = file[i][3]
-            collateralInformationRecord.collateralType = file[i][4]
-            const data = { collateralInformationRecord, recordType }
+            corporateInformationRecord.institutionName = file[i][0];
+            corporateInformationRecord.tradingName = file[i][1];
+            corporateInformationRecord.taxNo = file[i][2];
+            corporateInformationRecord.vatNo = file[i][3];
+            corporateInformationRecord.companyRegNo = file[i][4];
+            corporateInformationRecord.companyRegistrationDate = file[i][5];
+            corporateInformationRecord.companyCeaseDate = file[i][6];
+            corporateInformationRecord.industry = file[i][7];
+            corporateInformationRecord.postalAddressLine1 = file[i][8];
+            corporateInformationRecord.postalAddressLine2 = file[i][9];
+            corporateInformationRecord.postalCode = file[i][10];
+            corporateInformationRecord.physicalAddressLine1 = file[i][11];
+            corporateInformationRecord.physicalAddressLine2 = file[i][12];
+            corporateInformationRecord.physicalAddressPostalCode = file[i][13];
+            corporateInformationRecord.physicalAddressPlotNumber = file[i][14];
+            corporateInformationRecord.physicalAddressProvince = file[i][15];
+            corporateInformationRecord.physicalAddressDistrict = file[i][16];
+            corporateInformationRecord.physicalAddressSector = file[i][17];
+            corporateInformationRecord.physicalAddressCell = file[i][18];
+            corporateInformationRecord.country = file[i][19];
+            corporateInformationRecord.emailAddress = file[i][20];
+            corporateInformationRecord.telephone1 = file[i][21];
+            corporateInformationRecord.telephone2 = file[i][22];
+            corporateInformationRecord.telephone3 = file[i][23];
+            corporateInformationRecord.telephone4 = file[i][24];
+            corporateInformationRecord.telephone5 = file[i][25];
+            corporateInformationRecord.telephone6 = file[i][26];
+            corporateInformationRecord.facsimile1 = file[i][27];
+            corporateInformationRecord.facsimile2 = file[i][28];
+            corporateInformationRecord.accountNumber = file[i][29];
+            corporateInformationRecord.oldAccountNumber = file[i][30];
+            corporateInformationRecord.accountType = file[i][31];
+            corporateInformationRecord.accountStatus = file[i][32];
+            corporateInformationRecord.classification = file[i][33];
+            corporateInformationRecord.accountOwner = file[i][34];
+            corporateInformationRecord.jointLoanParticipants = file[i][35];
+            corporateInformationRecord.currencyType = file[i][36];
+            corporateInformationRecord.dateOpened = file[i][37];
+            corporateInformationRecord.dateUpdated = file[i][38];
+            corporateInformationRecord.termsDuration = file[i][39];
+            corporateInformationRecord.repaymentTerm = file[i][40];
+            corporateInformationRecord.openingBalanceCreditLimit = file[i][41];
+            corporateInformationRecord.currentBalance = file[i][42];
+            corporateInformationRecord.availableCredit = file[i][43];
+            corporateInformationRecord.currentBalanceIndicator = file[i][44];
+            corporateInformationRecord.scheduledMonthlyPaymentAmount = file[i][45];
+            corporateInformationRecord.actualPaymentAmount = file[i][46];
+            corporateInformationRecord.amountPastDue = file[i][47];
+            corporateInformationRecord.installmentsInArrears = file[i][48];
+            corporateInformationRecord.daysInArrears = file[i][49];
+            corporateInformationRecord.dateClosed = file[i][50];
+            corporateInformationRecord.lastPaymentDate = file[i][51];
+            corporateInformationRecord.interestRate = file[i][52];
+            corporateInformationRecord.firstPaymentDate = file[i][53];
+            corporateInformationRecord.nature = file[i][54];
+            corporateInformationRecord.category = file[i][55];
+            corporateInformationRecord.sectorOfActivity = file[i][56];
+            corporateInformationRecord.approvalDate = file[i][57];
+            corporateInformationRecord.finalPaymentDate = file[i][58];
+
+
+            const data = { corporateInformationRecord, recordType }
+            //calculating the percentage of completed work
+            //we calculate the percentage by multiplying the current index with 100 and divide the length of the file minus one
+            //we takeaway 1 cause we have started from the 2nd index as the first index was the header
+            //if percent is 100 thats when we show the button of downloading errors
+            const percent = ((i * 100) / (file.length - 1)).toFixed(2);
+            setPercentage(percent);
+            if (i === file.length - 1) {
+                console.log("executing if ", percent)
+                setShowDownload(true);
+                setHasSendingStarted(false)
+            }
+            //checking if it is already saved
+            const LoanIdStatus = await readStatus("corporate", file[i][5])
+            //console.log(LoanIdStatus.stat);
+            if (LoanIdStatus.status === 200) {
+                if (LoanIdStatus.data.status === "success") {
+                    console.log(LoanIdStatus);
+                    continue;
+                }
+            }
             try {
-                const response = await axios.post("https://secure3.crbafrica.com/duv2/data/rw/update/collateral", data, {
+                const response = await axios.post("https://secure3.crbafrica.com/duv2/data/rw/update/corporatecredit", data, {
                     headers: {
                         Authorization: authKey,
                         "Content-Type": "application/json",
@@ -191,33 +326,37 @@ const FileUpload = () => {
                 }
                 if (response.data.responseCode === 600) {
                     setShowErrorTable(true)
-                    console.log("this is an error")
                     const error = response.data.recordErrors[0]
                     errorCounter = errorCounter + 1;
                     setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
                     //setErrorInfo((prevErrorInfo) => [...prevErrorInfo, { accountNumber: file[i][0], message: response.data.message, },])
                     setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setErrorData((prevErrorData) => [...prevErrorData, collateralInformationRecord]);
+                    setErrorData((prevErrorData) => [...prevErrorData, { ...collateralInformationRecord, collateral_Id: file[i][5] }]);
+                    const statusData = {
+                        accountNumber: corporateInformationRecord.accountNumber,
+                        status: "failed",
+                        errorData: {
+                            errorMessage: error.errorMessage,
+                            fieldName: error.fieldName,
+                            erroneousValue: error.fieldValue
+                        }
+                    }
+                    console.log(error);
+                    await SaveStatus("corporate", statusData)
                 }
                 else {
                     setShowSuccessTable(true)
                     successCounter = successCounter + 1
                     setStatistics((prevStatistics) => ({ ...prevStatistics, successNumber: successCounter }))
                     setSuccessInfo((prevSuccessInfo) => [...prevSuccessInfo, { accountNumber: file[i][0], message: response.data.message, },]);
+                    const statusData = {
+                        accountNumber: collateralInformationRecord.accountNumber,
+                        status: "success"
+                    }
+                    await SaveStatus("corporate", statusData)
                 }
-                //calculating the percentage of completed work
-                //we calculate the percentage by multiplying the current index with 100 and divide the length of the file minus one
-                //we takeaway 1 cause we have started from the 2nd index as the first index was the header
-                //if percent is 100 thats when we show the button of downloading errors
-
                 setLoading(true)
-                const percent = ((i * 100) / (file.length - 1)).toFixed(2);
-                setPercentage(percent);
-                if (i === file.length - 1) {
-                    console.log("executing if ", percent)
-                    setShowDownload(true);
-                    setHasSendingStarted(false)
-                }
+                setOnStart(false)
             } catch (error) {
                 console.log(error)
             }
@@ -243,11 +382,36 @@ const FileUpload = () => {
                 lastRows[lastRows.length - 1].scrollIntoView({ behavior: 'smooth', block: 'end' });
             }
         }
-    }, [successInfo,errorInfo]);
+    }, [successInfo, errorInfo]);
+
+    useEffect(async () => {
+        try {
+            const response = await axios.get("http://localhost:2000/api/corporate/readerrorstatus")
+            if (response.data.length !== 0) {
+                for (let i = 0; i < response.data.length; i++) {
+                    const error = {
+                        "errorMessage": response.data[i].errorData.errorMessage,
+                        "accountNumber": response.data[i].accountNumber,
+                        "fieldName": response.data[i].errorData.fieldName,
+                        "fieldValue": response.data[i].errorData.fieldValue,
+                    }
+                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
+                    setShowDownload(true);
+                    setShowErrorTable(true);
+                    setOnStart(true)
+                }
+
+            }
+
+            console.log(response.data);
+        } catch (error) {
+            console.log(error)
+        }
+    }, [])
     return (
         <>
             {/*1.the container div holds all other div followed by the row div ,followed by the col div */}
-            <div className="container">
+            <div className="container ">
                 <div className="row">
                     <div className="col-md-6">
                         <div className="d-flex justify-content-center">
@@ -281,7 +445,10 @@ const FileUpload = () => {
                         <div>
                             {/* token expiration modal */}
                             <TokenTimer
+                                clas
                                 toggleExpirationTokenModal={toggleModal}
+                                loginHandler={loginHandler}
+                                refresh={refresh}
                             />
                         </div>
                         <StatisticsDisplay
@@ -289,14 +456,17 @@ const FileUpload = () => {
                             toggleErrorModal={toggleErrorModal}
                             showDownload={showDownload}
                             data={errorData}
+                            errorInfo={errorInfo}
+                            file={file}
+                            onStart={onStart}
                         />
                         {/* this is the table that shows the erroneous data  */}
-                            {showErrorTable&&(
-                                <ErrorTable 
+                        {showErrorTable && (
+                            <ErrorTable
                                 errorInfo={errorInfo}
                                 tableErrorRef={tableErrorRef}
-                                />
-                            )}
+                            />
+                        )}
                     </div>
                 </div>
                 {/* TOASTS CONTAINER */}
@@ -306,7 +476,7 @@ const FileUpload = () => {
                     <MyModal
                         modalIsOpen={modalIsOpen}
                         toggleModal={toggleModal}
-                        message={"Token expired"}
+                        message={"wait a bit "}
                     />
                 </div>
                 {/* error modal  */}
@@ -322,4 +492,4 @@ const FileUpload = () => {
     );
 };
 
-export default FileUpload;
+export default CorporateFileUpload;

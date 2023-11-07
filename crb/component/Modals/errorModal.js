@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ErrorReportedExcel from '../Helpers/generateExcel';
+import ErrorReportedExcel from '../../Helpers/generateExcel';
 import {
     Button,
     Modal,
