@@ -12,8 +12,7 @@ const EntryComponent = ({ button1, button2, actiona, actionb, name,color,icon,me
                             <UncontrolledPopover
                                 placement="top"
                                 target={name}
-                                trigger="focus"
-
+                                trigger="legacy"
                             >
                                 <PopoverHeader>
                                     <p className='d-flex justify-content-center'>choose action</p>

@@ -5,7 +5,7 @@ const router=express.Router();
 
 
 router.post("/savestatus",SaveCollateralStatus);
-router.get("/readCollateralErrorStatus",readCollateralErrorStatus);
+router.get("/readerrorstatus",readCollateralErrorStatus);
 router.get("/readstatus/:collateralid",readCollateralStatus)
 router.get("/tokencrb/",logincrb)
 

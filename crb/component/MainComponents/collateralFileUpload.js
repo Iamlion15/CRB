@@ -12,6 +12,8 @@ import { SaveCollateralStatus, readCollateralStatus } from "../../Helpers/save_r
 import ChecklFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { collateralFileFormat } from "../../constants/fileFormat";
+import { collateralInformationRecord } from "../../constants/dataStructure";
 
 
 const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
@@ -68,8 +70,7 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
             readXlsxFile(selectedFile)
                 .then((rows) => {
                     // Handle the data from the Excel file (rows)
-                    const collateralFormat = ["Account Number", "Collateral Expiry Date", "Collateral Value", "Collateral Last Valuation Date", "Collateral Type", "Collateral Id"]
-                    const match = ChecklFileFormat(rows, collateralFormat)
+                    const match = ChecklFileFormat(rows, collateralFileFormat)
                     if (match) {
                         setShowAdding(false)
                         setFile(rows)
@@ -162,14 +163,6 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
         setShowDownload(false)
         const recordType = "CR"
         const token = localStorage.getItem("token")
-        const collateralInformationRecord = {
-            accountNumber: "",
-            collateralExpiryDate: "",
-            collateralLastValuationDate: "",
-            collateralValue: "",
-            collateralType: "",
-            collateral_Id: "",
-        }
         const tokenPrep = token.replace(/"/g, '');
         const authKey = `Bearer ${tokenPrep}`
         for (let i = 1; i < file.length; i++) {
@@ -243,7 +236,7 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
                         loanId: collateralInformationRecord.accountNumber,
                         status: "success"
                     }
-                    await SaveStatus("collateral", statusData)
+                    await SaveCollateralStatus("collateral", statusData)
                 }
                 setLoading(true)
                 setOnStart(false)

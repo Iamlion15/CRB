@@ -12,6 +12,8 @@ import { SaveStatus, readStatus } from "../../Helpers/save_read_Status";
 import ChecklFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { corporateFileFormat } from "../../constants/fileFormat";
+import { corporateInformationRecord } from "../../constants/dataStructure";
 
 
 const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
@@ -68,8 +70,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
             readXlsxFile(selectedFile)
                 .then((rows) => {
                     // Handle the data from the Excel file (rows)
-                    const collateralFormat = ["Account Number", "Collateral Expiry Date", "Collateral Value", "Collateral Last Valuation Date", "Collateral Type", "Collateral Id"]
-                    const match = ChecklFileFormat(rows, collateralFormat)
+                    const match = ChecklFileFormat(rows, corporateFileFormat)
                     if (match) {
                         setShowAdding(false)
                         setFile(rows)
@@ -162,69 +163,6 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
         setShowDownload(false)
         const recordType = "CI "
         const token = localStorage.getItem("token")
-        //DATA STRUCTURE
-        const corporateInformationRecord = {
-            institutionName: "",
-            tradingName: "",
-            taxNo: "",
-            vatNo: "",
-            companyRegNo: "",
-            companyRegistrationDate: "",
-            companyCeaseDate: "",
-            industry: "",
-            postalAddressLine1: "",
-            postalAddressLine2: "",
-            postalCode: "",
-            physicalAddressLine1: "",
-            physicalAddressLine2: "",
-            physicalAddressPostalCode: "",
-            physicalAddressPlotNumber: "",
-            physicalAddressProvince: "",
-            physicalAddressDistrict: "",
-            physicalAddressSector: "",
-            physicalAddressCell: "",
-            country: "",
-            emailAddress: "",
-            telephone1: "",
-            telephone2: "",
-            telephone3: "",
-            telephone4: "",
-            telephone5: "",
-            telephone6: "",
-            facsimile1: "",
-            facsimile2: "",
-            accountNumber: "",
-            oldAccountNumber: "",
-            accountType: "",
-            accountStatus: "",
-            classification: "",
-            accountOwner: "",
-            jointLoanParticipants: "",
-            currencyType: "",
-            dateOpened: "",
-            dateUpdated: "",
-            termsDuration: "",
-            repaymentTerm: "",
-            openingBalanceCreditLimit: "",
-            currentBalance: "",
-            availableCredit: "",
-            currentBalanceIndicator: "",
-            scheduledMonthlyPaymentAmount: "",
-            actualPaymentAmount: "",
-            amountPastDue: "",
-            installmentsInArrears: "",
-            daysInArrears: "",
-            dateClosed: "",
-            lastPaymentDate: "",
-            interestRate: "",
-            firstPaymentDate: "",
-            nature: "",
-            category: "",
-            sectorOfActivity: "",
-            approvalDate: "",
-            finalPaymentDate: ""
-        };
-
         // You can access and update the fields of the corporateInformationRecord object as needed.        
         const tokenPrep = token.replace(/"/g, '');
         const authKey = `Bearer ${tokenPrep}`
@@ -331,7 +269,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                     setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
                     //setErrorInfo((prevErrorInfo) => [...prevErrorInfo, { accountNumber: file[i][0], message: response.data.message, },])
                     setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setErrorData((prevErrorData) => [...prevErrorData, { ...collateralInformationRecord, collateral_Id: file[i][5] }]);
+                    setErrorData((prevErrorData) => [...prevErrorData, { ...corporateFileFormat, collateral_Id: file[i][5] }]);
                     const statusData = {
                         accountNumber: corporateInformationRecord.accountNumber,
                         status: "failed",
@@ -345,12 +283,13 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                     await SaveStatus("corporate", statusData)
                 }
                 else {
+                    console.log(response.data)
                     setShowSuccessTable(true)
                     successCounter = successCounter + 1
                     setStatistics((prevStatistics) => ({ ...prevStatistics, successNumber: successCounter }))
                     setSuccessInfo((prevSuccessInfo) => [...prevSuccessInfo, { accountNumber: file[i][0], message: response.data.message, },]);
                     const statusData = {
-                        accountNumber: collateralInformationRecord.accountNumber,
+                        accountNumber: corporateFileFormat.accountNumber,
                         status: "success"
                     }
                     await SaveStatus("corporate", statusData)

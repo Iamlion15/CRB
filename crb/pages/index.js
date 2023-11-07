@@ -7,6 +7,7 @@ import Router from 'next/router';
 const Homepage = () => {
 
 const startNewSession=async(name)=>{
+  console.log("HELLOOO ");
   const route=name.toLowerCase();
   try {
     const response=await axios.get(`http://localhost:2000/api/crb/${route}/initialise`)
@@ -30,10 +31,10 @@ const continueFromPrevious=(name)=>{
                 <EntryComponent name="COLLATERAL" button1="Start new session" message='collateral data only' color="bg-danger"  button2="Continue from previous session" actiona={startNewSession} actionb={continueFromPrevious}/>
               </div>
               <div className='mx-5'>
-                <EntryComponent name="CORPORATE" button1="Start new session" message='corporate data only' color="bg-success"  button2="Continue from previous session"/>
+                <EntryComponent name="CORPORATE" button1="Start new session" message='corporate data only' color="bg-success"  button2="Continue from previous session" actiona={startNewSession} actionb={continueFromPrevious}/>
               </div>
               <div className='mx-5'>
-                <EntryComponent name="CONSUMER" button1="Start new session" message='consumer data only' color="bg-warning"  button2="Continue from previous session"/>
+                <EntryComponent name="CONSUMER" button1="Start new session" message='consumer data only' color="bg-warning"  button2="Continue from previous session" actiona={startNewSession} actionb={continueFromPrevious}/>
               </div>
         </div>
       </div>
