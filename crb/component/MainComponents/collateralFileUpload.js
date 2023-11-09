@@ -9,7 +9,7 @@ import StatisticsDisplay from "../statistics/collateralStatisticsDisplay";
 import TokenTimer from "../Timer/tokenTimer";
 import ChooseFile from "../FileOperations/ChooseFile_progressBar";
 import { SaveCollateralStatus, readCollateralStatus } from "../../Helpers/save_read_Status";
-import ChecklFileFormat from "../../Helpers/checkFileFormat";
+import CheckFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { collateralFileFormat } from "../../constants/fileFormat";
@@ -70,7 +70,7 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
             readXlsxFile(selectedFile)
                 .then((rows) => {
                     // Handle the data from the Excel file (rows)
-                    const match = ChecklFileFormat(rows, collateralFileFormat)
+                    const match = CheckFileFormat(rows, collateralFileFormat)
                     if (match) {
                         setShowAdding(false)
                         setFile(rows)

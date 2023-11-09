@@ -1,21 +1,26 @@
-// worker.js (Your worker file)
-const readXlsxFile = require('read-excel-file');
-self.onmessage = function (e) {
-    const selectedFile = e.data;
-  
-    // Use CommonJS syntax to require the 'read-excel-file' library
-  
-  
-    // Use the 'read-excel-file' library to read the Excel file
-    readXlsxFile(selectedFile)
-      .then((rows) => {
-        // Process the data and send it back to the main thread
-        self.postMessage(rows);
-      })
-      .catch((error) => {
-        console.error('Error reading Excel file:', error);
-        // Send an error message back to the main thread if needed
-        self.postMessage({ error: 'Failed to read the file' });
-      });
+import * as xlsx from 'xlsx';
+
+self.onmessage = function(e) {
+
+  const file = e.data;
+
+  const reader = new FileReader();
+
+  reader.onload = (e) => {
+
+    const data = e.target.result;
+
+    const workbook = xlsx.read(data, {type:'binary'});
+
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    const rows = xlsx.utils.sheet_to_json(worksheet, {header: 1});
+
+    self.postMessage(rows);
+
   };
-  
+
+  reader.readAsBinaryString(file);
+
+};

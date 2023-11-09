@@ -9,11 +9,12 @@ import StatisticsDisplay from "../statistics/collateralStatisticsDisplay";
 import TokenTimer from "../Timer/tokenTimer";
 import ChooseFile from "../FileOperations/ChooseFile_progressBar";
 import { SaveStatus, readStatus } from "../../Helpers/save_read_Status";
-import ChecklFileFormat from "../../Helpers/checkFileFormat";
+import CheckFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { consumerFileFormat } from "../../constants/fileFormat";
 import { consumerCreditInformationRecord } from "../../constants/dataStructure";
+import ConsumerFileLoadingModal from "../Modals/consumerFileLoadingModal";
 
 
 
@@ -34,6 +35,7 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
     const [displayFile, setDisplayFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [onStart, setOnStart] = useState(false)
+    const [loadingFile, setLoadingFile] = useState(false);
     const [showAdding, setShowAdding] = useState(true)
     const [successInfo, setSuccessInfo] = useState([])
     const [errorInfo, setErrorInfo] = useState([]);
@@ -57,34 +59,44 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
     const toastId = useRef(null);//to use it in updating toast messages
     //handle change is a function that helps us get the file from the computer
     const handleChange = async (event) => {
-        //start the loader indicating that u have started copying the file
-        toastId.current = toast.info("loading file..............", {
-            position: toast.POSITION.BOTTOM_LEFT,
-            autoClose: false
-        })
-        //we get the file and store it in a variable called selectedFile
         const selectedFile = event.target.files[0];
         //we keep the selectedFile in displayFile for it to be used later in displayong file name
         setDisplayFile(selectedFile)
         SetDisplayMenu(true);
         if (selectedFile) {
-            //we use a library called read-excel-file to read our excel file and transform it into an array of objects
-            const worker = new Worker(URL.createObjectURL(new Blob(["../../Helpers/openFileWorker"], { type: 'application/javascript' })));
-
-
-            worker.onmessage = (event) => {
-              const result = event.data;
-              console.log('Received result from worker:', result);
-              setFileData(result);
-      
-              // Don't forget to terminate the worker when it's no longer needed
-              worker.terminate();
+            //call the worker to do the loading file job as we maintain the main thread from freezing
+            const newWebWorker = new Worker(new URL("../../Helpers/openFileWorker", import.meta.url))
+            toggleLoadinFile()
+            newWebWorker.postMessage(selectedFile);
+            let rows
+            newWebWorker.onmessage = (event) => {
+                rows = event.data; // wait for promise
+                console.log(rows);
+                setLoadingFile(false)
+                newWebWorker.terminate();
+                toast.success("successfully imported the file!", {
+                    position: toast.POSITION.BOTTOM_LEFT,
+                    autoClose: 1000
+                });
+                processTheFile(rows)
             };
-      
-            // Send the 'read-excel-file' library reference and the selected file to the worker
-            worker.postMessage( selectedFile);
         }
     };
+
+    const processTheFile = (rows) => {
+        const match = CheckFileFormat(rows, consumerFileFormat)
+        if (match) {
+            setShowAdding(false)
+            setFile(rows)
+            setShowPostingButton(true);
+        } else {
+            setFileErrorMessage("INVALID FILE FORMAT,FILE FORMAT DONT MATCH COLLATERAL FILE FORMAT")
+            setShowAdding(false)
+            setFile(rows)
+            setShowPostingButton(false);
+            setIsFileFormatNotValid(true)
+        }
+    }
     //this is a function that get triggered when remove file is clicked
     const remove = (e) => {
         e.preventDefault()
@@ -113,6 +125,9 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
     //show error modal
     const toggleErrorModal = () => {
         setErrorModalIsOpne(!errorModalIsOpen)
+    }
+    const toggleLoadinFile = () => {
+        setLoadingFile(true);
     }
     const handleStopSendingData = () => {
         window.location.reload();//reload the page and it stops evrything
@@ -433,6 +448,12 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                         data={errorInfo}
                     />
                 </div>
+                {/* consumer file loading */}
+                <ConsumerFileLoadingModal
+                    modalIsOpen={loadingFile}
+                    toggleModal={toggleLoadinFile}
+                    message={"wait a bit "}
+                />
             </div>
         </>
     );
