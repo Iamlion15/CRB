@@ -12,8 +12,8 @@ import { SaveStatus, readStatus } from "../../Helpers/save_read_Status";
 import ChecklFileFormat from "../../Helpers/checkFileFormat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { consumerFileFormat } from "../../constants/fileFormat";
-import { consumerCreditInformationRecord } from "../../constants/dataStructure";
+import { corporateFileFormat } from "../../constants/fileFormat";
+import { corporateCreditInformationRecord } from "../../constants/dataStructure";
 
 
 const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
@@ -37,6 +37,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
     const [errorInfo, setErrorInfo] = useState([]);
     const [errorData, setErrorData] = useState([]);
     const [percentage, setPercentage] = useState('0')
+    const [downloadableErrorData, setDownloadableErrorData] = useState([])
     const [showDownload, setShowDownload] = useState(false);
     const [isFileFormatNotValid, setIsFileFormatNotValid] = useState(false)
     const [errorModalIsOpen, setErrorModalIsOpne] = useState(false)
@@ -70,7 +71,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
             readXlsxFile(selectedFile)
                 .then((rows) => {
                     // Handle the data from the Excel file (rows)
-                    const match = ChecklFileFormat(rows, consumerFileFormat)
+                    const match = ChecklFileFormat(rows, corporateFileFormat)
                     if (match) {
                         setShowAdding(false)
                         setFile(rows)
@@ -168,10 +169,66 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
         const authKey = `Bearer ${tokenPrep}`
         for (let i = 1; i < file.length; i++) {
             setHasSendingStarted(true)
-            
-
-
-            const data = { consumerCreditInformationRecord, recordType }
+            corporateCreditInformationRecord.institution = file[i][0];
+            corporateCreditInformationRecord.tradingName = file[i][1];
+            corporateCreditInformationRecord.taxNo = file[i][2];
+            corporateCreditInformationRecord.vatNo = file[i][3];
+            corporateCreditInformationRecord.companyRegNo = file[i][4];
+            corporateCreditInformationRecord.companyRegistrationDate = file[i][5];
+            corporateCreditInformationRecord.companyCeaseDate = file[i][6];
+            corporateCreditInformationRecord.industry = file[i][7];
+            corporateCreditInformationRecord.postalAddressLine1 = file[i][8];
+            corporateCreditInformationRecord.postalAddressLine2 = file[i][9];
+            corporateCreditInformationRecord.postalCode = file[i][10];
+            corporateCreditInformationRecord.physicalAddressLine1 = file[i][11];
+            corporateCreditInformationRecord.physicalAddressLine2 = file[i][12];
+            corporateCreditInformationRecord.physicalAddressPostalCode = file[i][13];
+            corporateCreditInformationRecord.physicalAddressPlotNumber = file[i][14];
+            corporateCreditInformationRecord.physicalAddressProvince = file[i][15];
+            corporateCreditInformationRecord.physicalAddressDistrict = file[i][16];
+            corporateCreditInformationRecord.physicalAddressSector = file[i][17];
+            corporateCreditInformationRecord.physicalAddressCell = file[i][18];
+            corporateCreditInformationRecord.country = file[i][19];
+            corporateCreditInformationRecord.emailAddress = file[i][20];
+            corporateCreditInformationRecord.telephone1 = file[i][21];
+            corporateCreditInformationRecord.telephone2 = file[i][22];
+            corporateCreditInformationRecord.telephone3 = file[i][23];
+            corporateCreditInformationRecord.telephone4 = file[i][24];
+            corporateCreditInformationRecord.telephone5 = file[i][25];
+            corporateCreditInformationRecord.telephone6 = file[i][26];
+            corporateCreditInformationRecord.facsimile1 = file[i][27];
+            corporateCreditInformationRecord.facsimile2 = file[i][28];
+            corporateCreditInformationRecord.accountNumber = file[i][29];
+            corporateCreditInformationRecord.oldAccountNumber = file[i][30];
+            corporateCreditInformationRecord.accountType = file[i][31];
+            corporateCreditInformationRecord.accountStatus = file[i][32];
+            corporateCreditInformationRecord.classification = file[i][33];
+            corporateCreditInformationRecord.accountOwner = file[i][34];
+            corporateCreditInformationRecord.jointLoanParticipants = file[i][35];
+            corporateCreditInformationRecord.currencyType = file[i][36];
+            corporateCreditInformationRecord.dateAccountOpened = file[i][37];
+            corporateCreditInformationRecord.dateAccountUpdated = file[i][38];
+            corporateCreditInformationRecord.termsDuration = file[i][39];
+            corporateCreditInformationRecord.accountRepaymentTerm = file[i][40];
+            corporateCreditInformationRecord.openingBalance = file[i][41];
+            corporateCreditInformationRecord.currentBalance = file[i][42];
+            corporateCreditInformationRecord.availableCredit = file[i][43];
+            corporateCreditInformationRecord.currentBalanceIndicator = file[i][44];
+            corporateCreditInformationRecord.scheduledPaymentAmount = file[i][45];
+            corporateCreditInformationRecord.actualPaymentAmount = file[i][46];
+            corporateCreditInformationRecord.amountPastDue = file[i][47];
+            corporateCreditInformationRecord.installmentsInArrears = file[i][48];
+            corporateCreditInformationRecord.daysInArrears = file[i][49];
+            corporateCreditInformationRecord.dateClosed = file[i][50];
+            corporateCreditInformationRecord.lastPaymentDate = file[i][51];
+            corporateCreditInformationRecord.interestRateAtDisbursement = file[i][52];
+            corporateCreditInformationRecord.firstPaymentDate = file[i][53];
+            corporateCreditInformationRecord.nature = file[i][54];
+            corporateCreditInformationRecord.category = file[i][55];
+            corporateCreditInformationRecord.sectorOfActivity = file[i][56];
+            corporateCreditInformationRecord.approvalDate = file[i][57];
+            corporateCreditInformationRecord.finalPaymentDate = file[i][58];
+            const data = { corporateCreditInformationRecord, recordType }
             //calculating the percentage of completed work
             //we calculate the percentage by multiplying the current index with 100 and divide the length of the file minus one
             //we takeaway 1 cause we have started from the 2nd index as the first index was the header
@@ -184,7 +241,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                 setHasSendingStarted(false)
             }
             //checking if it is already saved
-            const LoanIdStatus = await readStatus("corporate", file[i][5])
+            const LoanIdStatus = await readStatus("corporate", file[i][29])
             //console.log(LoanIdStatus.stat);
             if (LoanIdStatus.status === 200) {
                 if (LoanIdStatus.data.status === "success") {
@@ -206,23 +263,42 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                 }
                 if (response.data.responseCode === 600) {
                     setShowErrorTable(true)
-                    const error = response.data.recordErrors[0]
+                    const error = response.data.recordErrors
+                    console.log(error);
                     errorCounter = errorCounter + 1;
-                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
-                    //setErrorInfo((prevErrorInfo) => [...prevErrorInfo, { accountNumber: file[i][0], message: response.data.message, },])
-                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setErrorData((prevErrorData) => [...prevErrorData, { ...consumerFileFormat, collateral_Id: file[i][5] }]);
-                    const statusData = {
-                        accountNumber: consumerCreditInformationRecord.accountNumber,
-                        status: "failed",
-                        errorData: {
-                            errorMessage: error.errorMessage,
-                            fieldName: error.fieldName,
-                            erroneousValue: error.fieldValue
+                    let errorDetail = []
+                    const downloadableData={
+                        accountNumber:"",
+                        errorMessage:"",
+                        fieldName:"",
+                        fieldValue:""
+                    };
+                    for (let i = 0; i < error.length; i++) {
+                        downloadableData={
+                            accountNumber: collateralInformationRecord.accountNumber,
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            fieldValue: error[i].fieldValue
                         }
+                        setDownloadableErrorData((prevDownloadableErrorData)=>[...prevDownloadableErrorData,downloadableData]) 
+                        const detail = {
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            erroneousValue: error[i].fieldValue
+                        }
+                        errorDetail.push(detail)
                     }
-                    console.log(consumerCreditInformationRecord);
+                    const statusData = {
+                        accountNumber: corporateCreditInformationRecord.accountNumber,
+                        status: "failed",
+                        errorMessage: error.message,
+                        errorData: errorDetail
+                    }
                     await SaveStatus("corporate", statusData)
+                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
+                    console.log(statusData);
+                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, statusData])
+                    setErrorData((prevErrorData) => [...prevErrorData, { ...corporateFileFormat, accountNumber: file[i][29] }]);
                 }
                 else {
                     setShowSuccessTable(true)
@@ -230,7 +306,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                     setStatistics((prevStatistics) => ({ ...prevStatistics, successNumber: successCounter }))
                     setSuccessInfo((prevSuccessInfo) => [...prevSuccessInfo, { accountNumber: file[i][0], message: response.data.message, },]);
                     const statusData = {
-                        accountNumber: consumerFileFormat.accountNumber,
+                        accountNumber: corporateFileFormat.accountNumber,
                         status: "success"
                     }
                     await SaveStatus("corporate", statusData)
@@ -268,23 +344,50 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
         try {
             const response = await axios.get("http://localhost:2000/api/corporate/readerrorstatus")
             if (response.data.length !== 0) {
+                const error = {
+                    accountNumber: "",
+                    errorData: []
+                }
+                const downloadableData = {
+                    accountNumber: "",
+                    errorMessage: "",
+                    fieldName: "",
+                    fieldValue: ""
+                };
                 for (let i = 0; i < response.data.length; i++) {
-                    const error = {
-                        "errorMessage": response.data[i].errorData.errorMessage,
-                        "accountNumber": response.data[i].accountNumber,
-                        "fieldName": response.data[i].errorData.fieldName,
-                        "fieldValue": response.data[i].errorData.fieldValue,
+                    let errorDetail = []
+                    for (let a = 0; a < response.data[i].errorData.length; a++) {
+                        {
+                            errorDetail = [...errorDetail, {
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }]
+                            downloadableData = {
+                                accountNumber: response.data[i].accountNumber,
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }
+                            setDownloadableErrorData((prevDownloadableErrorData) => [...prevDownloadableErrorData, downloadableData])
+                        }
+                        error = {
+                            accountNumber: response.data[i].accountNumber,
+                            errorData: errorDetail
+                        }
                     }
                     setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setShowDownload(true);
-                    setShowErrorTable(true);
-                    setOnStart(true)
                 }
+                console.log(error);
 
+                setShowDownload(true);
+                setShowErrorTable(true);
+                setOnStart(true)
+                console.log(error);
             }
 
-            console.log(response.data);
-        } catch (error) {
+        }
+        catch (error) {
             console.log(error)
         }
     }, [])
@@ -325,7 +428,6 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                         <div>
                             {/* token expiration modal */}
                             <TokenTimer
-                                clas
                                 toggleExpirationTokenModal={toggleModal}
                                 loginHandler={loginHandler}
                                 refresh={refresh}
@@ -365,6 +467,7 @@ const CorporateFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refres
                         modalIsOpen={errorModalIsOpen}
                         toggleModal={toggleErrorModal}
                         data={errorInfo}
+                        downloadableRecords={downloadableErrorData}
                     />
                 </div>
             </div>

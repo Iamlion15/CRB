@@ -9,7 +9,7 @@ exports.SaveStatus = async (req, res) => {
         const collateralObject = {
             accountNumber,
             status,
-            errorData,
+            errorData:[]
         };
 
         if (errorData) {

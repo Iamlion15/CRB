@@ -12,8 +12,6 @@ const StatisticsDisplay = ({ statistics, toggleErrorModal, showDownload, data, e
         return new Promise((resolve, reject) => {
             const erroneousData = [];
             erroneousData.length = 0;
-            console.log("file length", file.length);
-            console.log("errorInfo length", errorInfo.length);
             const dataStructure = {
                 accountNumber: "",
                 collateralExpiryDate: "",
@@ -29,7 +27,6 @@ const StatisticsDisplay = ({ statistics, toggleErrorModal, showDownload, data, e
                 dataStructure.collateralLastValuationDate = file[i][3]
                 dataStructure.collateralType = file[i][4]
                 dataStructure.Collateral_ID = file[i][5]
-                console.log(i)
                 for (let a = 0; a < errorInfo.length; a++) {
                     if (errorInfo[a].collateralId === file[i][5]) {
                         erroneousData.push(dataStructure);

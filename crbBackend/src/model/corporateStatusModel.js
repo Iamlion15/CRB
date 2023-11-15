@@ -9,12 +9,16 @@ const CorporateStatusSchema = new mongoose.Schema({
             type: String,
             required: true
       },
-      errorData:{
-            errorMessage:String,
-            fieldName:String,
-            fieldValue:String
+      errorInformationMessage:{
+            type:String,
+            default:"Failed validation, record has validation errors"
+      },
+      errorData: {
+            errorMessage: String,
+            fieldName: String,
+            fieldValue: String
       }
-},{timestamps:true})
+}, { timestamps: true })
 
 CorporateStatusSchema.index({ createdAt: 1 }, { expireAfterSeconds: 240 });
 

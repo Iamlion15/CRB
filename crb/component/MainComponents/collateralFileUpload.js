@@ -35,6 +35,7 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
     const [showAdding, setShowAdding] = useState(true)
     const [successInfo, setSuccessInfo] = useState([])
     const [errorInfo, setErrorInfo] = useState([]);
+    const [downloadableErrorData, setDownloadableErrorData] = useState([])
     const [errorData, setErrorData] = useState([]);
     const [percentage, setPercentage] = useState('0')
     const [showDownload, setShowDownload] = useState(false);
@@ -207,24 +208,42 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
                 }
                 if (response.data.responseCode === 600) {
                     setShowErrorTable(true)
-                    const error = response.data.recordErrors[0]
+                    const error = response.data.recordErrors
                     errorCounter = errorCounter + 1;
-                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
-                    //setErrorInfo((prevErrorInfo) => [...prevErrorInfo, { accountNumber: file[i][0], message: response.data.message, },])
-                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setErrorData((prevErrorData) => [...prevErrorData, { ...collateralInformationRecord, collateral_Id: file[i][5] }]);
+                    let errorDetail = []
+                    const downloadableData={
+                        accountNumber:"",
+                        errorMessage:"",
+                        fieldName:"",
+                        fieldValue:""
+                    };
+                    for (let i = 0; i < error.length; i++) {
+                        downloadableData={
+                            accountNumber: collateralInformationRecord.accountNumber,
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            fieldValue: error[i].fieldValue
+                        }
+                        setDownloadableErrorData((prevDownloadableErrorData)=>[...prevDownloadableErrorData,downloadableData]) 
+                        const detail = {
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            erroneousValue: error[i].fieldValue
+                        }
+                        errorDetail.push(detail)
+                    }
                     const statusData = {
                         collateralId: file[i][5],
-                        loanId: collateralInformationRecord.accountNumber,
+                        accountNumber: collateralInformationRecord.accountNumber,
                         status: "failed",
-                        errorData: {
-                            errorMessage: error.errorMessage,
-                            fieldName: error.fieldName,
-                            erroneousValue: error.fieldValue
-                        }
+                        errorMessage: error.message,
+                        errorData: errorDetail
                     }
-                    console.log(error);
                     await SaveCollateralStatus("collateral", statusData)
+                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
+                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, statusData])
+                    setErrorData((prevErrorData) => [...prevErrorData, { ...collateralInformationRecord, collateral_Id: file[i][5] }]);
+                    console.log(statusData);         
                 }
                 else {
                     setShowSuccessTable(true)
@@ -266,29 +285,54 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
             }
         }
     }, [successInfo, errorInfo]);
-
     useEffect(async () => {
         try {
             const response = await axios.get("http://localhost:2000/api/collateral/readerrorstatus")
             if (response.data.length !== 0) {
+                const error = {
+                    accountNumber: "",
+                    errorData: []
+                }
+                const downloadableData={
+                    accountNumber:"",
+                    errorMessage:"",
+                    fieldName:"",
+                    fieldValue:""
+                };
                 for (let i = 0; i < response.data.length; i++) {
-                    const error = {
-                        "errorMessage": response.data[i].errorData.errorMessage,
-                        "accountNumber": response.data[i].loanId,
-                        "fieldName": response.data[i].errorData.fieldName,
-                        "fieldValue": response.data[i].errorData.fieldValue,
-                        "collateralId": response.data[i].collateralId
+                    let errorDetail = []
+                    for (let a = 0; a < response.data[i].errorData.length; a++) {
+                        {
+                            errorDetail = [...errorDetail, {
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }]
+                            downloadableData={
+                                accountNumber: response.data[i].accountNumber,
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }
+                            setDownloadableErrorData((prevDownloadableErrorData)=>[...prevDownloadableErrorData,downloadableData])
+                        }
+                        error = {
+                            accountNumber: response.data[i].accountNumber,
+                            errorData: errorDetail
+                        }
                     }
                     setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setShowDownload(true);
-                    setShowErrorTable(true);
-                    setOnStart(true)
                 }
+                console.log(error);
 
+                setShowDownload(true);
+                setShowErrorTable(true);
+                setOnStart(true)
+                console.log(error);
             }
 
-            console.log(response.data);
-        } catch (error) {
+        }
+        catch (error) {
             console.log(error)
         }
     }, [])
@@ -369,6 +413,7 @@ const FileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh }) => {
                         modalIsOpen={errorModalIsOpen}
                         toggleModal={toggleErrorModal}
                         data={errorInfo}
+                        downloadableRecords={downloadableErrorData}
                     />
                 </div>
             </div>

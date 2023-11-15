@@ -3,18 +3,20 @@ const axios = require("axios")
 const dotenv = require("dotenv").config()
 
 exports.SaveCollateralStatus = async (req, res) => {
-    const { loanId, status, collateralId, errorData } = req.body;
+    const { accountNumber, status, collateralId, errorData,errorMessage } = req.body;
 
     try {
         // Define the update object based on whether error data is present
         const updateObject = {
-            loanId,
+            accountNumber,
             status,
             collateralId,
+            errorData:[]
         };
 
         if (errorData) {
             // Include error data if it is present
+            updateObject.errorInformationMessage=errorMessage
             updateObject.errorData = errorData;
         }
 

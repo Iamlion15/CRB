@@ -3,7 +3,7 @@ import ErrorReportedExcel from "../../Helpers/generateExcel";
 import MissingFileModal from "../Modals/MissingFileModal";
 import { corporateCreditInformationRecord } from "../../constants/dataStructure";
 
-const CorporateStatisticsDisplay = ({ statistics, toggleErrorModal, showDownload, data, errorInfo, file, onStart }) => {
+const ConsumerStatisticsDisplay = ({ statistics, toggleErrorModal, showDownload, data, errorInfo, file, onStart }) => {
     const [isMissingFileModalOpen, setMissingFileModalOpen] = useState(false)
 
     const toggleModal = () => {
@@ -153,4 +153,4 @@ const CorporateStatisticsDisplay = ({ statistics, toggleErrorModal, showDownload
 }
 
 
-export default CorporateStatisticsDisplay;
+export default ConsumerStatisticsDisplay;

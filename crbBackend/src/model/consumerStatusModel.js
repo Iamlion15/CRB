@@ -10,11 +10,11 @@ const ConsumerStatusSchema = new mongoose.Schema({
             type: String,
             required: true
       },
-      errorData: {
+      errorData: [{
             errorMessage: String,
             fieldName: String,
             fieldValue: String
-      }
+      }]
 }, { timestamps: true })
 
 ConsumerStatusSchema.index({ createdAt: 1 }, { expireAfterSeconds: 240 });

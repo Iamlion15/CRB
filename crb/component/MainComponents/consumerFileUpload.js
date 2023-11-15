@@ -38,6 +38,7 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
     const [loadingFile, setLoadingFile] = useState(false);
     const [showAdding, setShowAdding] = useState(true)
     const [successInfo, setSuccessInfo] = useState([])
+    const [downloadableErrorData, setDownloadableErrorData] = useState([])
     const [errorInfo, setErrorInfo] = useState([]);
     const [errorData, setErrorData] = useState([]);
     const [percentage, setPercentage] = useState('0')
@@ -71,7 +72,6 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
             let rows
             newWebWorker.onmessage = (event) => {
                 rows = event.data; // wait for promise
-                console.log(rows);
                 setLoadingFile(false)
                 newWebWorker.terminate();
                 toast.success("successfully imported the file!", {
@@ -263,7 +263,7 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                 setHasSendingStarted(false)
             }
             //checking if it is already saved
-            const LoanIdStatus = await readStatus("consumer", file[i][5])
+            const LoanIdStatus = await readStatus("consumer", file[i][29])
             //console.log(LoanIdStatus.stat);
             if (LoanIdStatus.status === 200) {
                 if (LoanIdStatus.data.status === "success") {
@@ -285,23 +285,42 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                 }
                 if (response.data.responseCode === 600) {
                     setShowErrorTable(true)
-                    const error = response.data.recordErrors[0]
+                    const error = response.data.recordErrors
                     errorCounter = errorCounter + 1;
-                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
-                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setErrorData((prevErrorData) => [...prevErrorData, { ...consumerCreditInformationRecord, collateral_Id: file[i][5] }]);
-                    const statusData = {
-                        collateralId: file[i][5],
-                        loanId: consumerCreditInformationRecord.accountNumber,
-                        status: "failed",
-                        errorData: {
-                            errorMessage: error.errorMessage,
-                            fieldName: error.fieldName,
-                            erroneousValue: error.fieldValue
+                    let errorDetail=[]
+                    const downloadableData={
+                        accountNumber:"",
+                        errorMessage:"",
+                        fieldName:"",
+                        fieldValue:""
+                    };
+                    for(let i=0;i<error.length;i++)
+                    {
+                        downloadableData={
+                            accountNumber: consumerCreditInformationRecord.accountNumber,
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            fieldValue: error[i].fieldValue
                         }
+                        setDownloadableErrorData((prevDownloadableErrorData)=>[...prevDownloadableErrorData,downloadableData]) 
+                        const detail= {
+                            errorMessage: error[i].errorMessage,
+                            fieldName: error[i].fieldName,
+                            erroneousValue: error[i].fieldValue
+                        }
+                        errorDetail.push(detail)
                     }
-                    console.log(error);
+                    const statusData = {
+                        accountNumber: consumerCreditInformationRecord.accountNumber,
+                        status: "failed",
+                        errorMessage: error.message,
+                        errorData: errorDetail
+
+                    }
                     await SaveStatus("consumer", statusData)
+                    setStatistics((prevStatistics) => ({ ...prevStatistics, errorNumber: errorCounter }))
+                    setErrorInfo((prevErrorInfo) => [...prevErrorInfo, statusData])
+                    setErrorData((prevErrorData) => [...prevErrorData, { ...consumerCreditInformationRecord, accountNumber: file[i][29] }]);
                 }
                 else {
                     console.log(data)
@@ -310,8 +329,7 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                     setStatistics((prevStatistics) => ({ ...prevStatistics, successNumber: successCounter }))
                     setSuccessInfo((prevSuccessInfo) => [...prevSuccessInfo, { accountNumber: file[i][0], message: response.data.message, },]);
                     const statusData = {
-                        collateralId: file[i][5],
-                        loanId: consumerCreditInformationRecord.accountNumber,
+                        accountNumber: consumerCreditInformationRecord.accountNumber,
                         status: "success"
                     }
                     await SaveStatus("consumer", statusData)
@@ -349,23 +367,50 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
         try {
             const response = await axios.get("http://localhost:2000/api/consumer/readerrorstatus")
             if (response.data.length !== 0) {
+                const error = {
+                    accountNumber: "",
+                    errorData: []
+                }
+                const downloadableData = {
+                    accountNumber: "",
+                    errorMessage: "",
+                    fieldName: "",
+                    fieldValue: ""
+                };
                 for (let i = 0; i < response.data.length; i++) {
-                    const error = {
-                        "errorMessage": response.data[i].errorData.errorMessage,
-                        "accountNumber": response.data[i].loanId,
-                        "fieldName": response.data[i].errorData.fieldName,
-                        "fieldValue": response.data[i].errorData.fieldValue,
+                    let errorDetail = []
+                    for (let a = 0; a < response.data[i].errorData.length; a++) {
+                        {
+                            errorDetail = [...errorDetail, {
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }]
+                            downloadableData = {
+                                accountNumber: response.data[i].accountNumber,
+                                errorMessage: response.data[i].errorData[a].errorMessage,
+                                fieldName: response.data[i].errorData[a].fieldName,
+                                fieldValue: response.data[i].errorData[a].fieldValue
+                            }
+                            setDownloadableErrorData((prevDownloadableErrorData) => [...prevDownloadableErrorData, downloadableData])
+                        }
+                        error = {
+                            accountNumber: response.data[i].accountNumber,
+                            errorData: errorDetail
+                        }
                     }
                     setErrorInfo((prevErrorInfo) => [...prevErrorInfo, error])
-                    setShowDownload(true);
-                    setShowErrorTable(true);
-                    setOnStart(true)
                 }
+                console.log(error);
 
+                setShowDownload(true);
+                setShowErrorTable(true);
+                setOnStart(true)
+                console.log(error);
             }
 
-            console.log(response.data);
-        } catch (error) {
+        }
+        catch (error) {
             console.log(error)
         }
     }, [])
@@ -406,7 +451,6 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                         <div>
                             {/* token expiration modal */}
                             <TokenTimer
-                                clas
                                 toggleExpirationTokenModal={toggleModal}
                                 loginHandler={loginHandler}
                                 refresh={refresh}
@@ -446,6 +490,7 @@ const ConsumerFileUpload = ({ loginHandler, modalIsOpen, setModalIsOpen, refresh
                         modalIsOpen={errorModalIsOpen}
                         toggleModal={toggleErrorModal}
                         data={errorInfo}
+                        downloadableRecords={downloadableErrorData}
                     />
                 </div>
                 {/* consumer file loading */}

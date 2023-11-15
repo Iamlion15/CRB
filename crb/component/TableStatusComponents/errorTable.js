@@ -1,7 +1,7 @@
 
 
 
-const ErrorTable = ({ errorInfo,tableErrorRef }) => {
+const ErrorTable = ({ errorInfo, tableErrorRef }) => {
     return (
         <>
             <div className="card mt-4 mx-3" style={{ height: '30vh', overflowY: 'auto' }}>
@@ -16,7 +16,14 @@ const ErrorTable = ({ errorInfo,tableErrorRef }) => {
                         {errorInfo.map((msg, index) => (
                             <tr key={index}>
                                 <td>{msg.accountNumber}</td>
-                                <td className="table-danger">{msg.errorMessage}</td>
+                                <td className="table-danger">
+                                    {msg.errorMessage ? (
+                                        <strong>{msg.errorMessage}</strong>
+                                    ) : (
+                                        <span>Failed validation, record has validation error(s)</span>
+                                    )}
+                                </td>
+
                             </tr>
                         ))}
                     </tbody>

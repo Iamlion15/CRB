@@ -7,7 +7,7 @@ import {
     ModalFooter,
 } from 'reactstrap';
 
-const ErrorModal = ({ modalIsOpen, toggleModal, data,downloadableRecords }) => {
+const CollateralErrorModal = ({ modalIsOpen, toggleModal, data,downloadableRecords }) => {
     const [search, setSearch] = useState('')
 
     const filteredContent = data.filter(error => {
@@ -97,4 +97,4 @@ const ErrorModal = ({ modalIsOpen, toggleModal, data,downloadableRecords }) => {
     );
 };
 
-export default ErrorModal;
+export default CollateralErrorModal;

@@ -1,7 +1,7 @@
 
 //CORPORATE DATA STRUCTURE
 export const corporateCreditInformationRecord = {
-    institutionName: "",
+    institution: "",
     tradingName: "",
     taxNo: "",
     vatNo: "",

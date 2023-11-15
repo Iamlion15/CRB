@@ -3,21 +3,22 @@ const axios = require("axios")
 const dotenv = require("dotenv").config()
 
 exports.SaveStatus = async (req, res) => {
-    const { accountNumber, status, errorData } = req.body;
+    const { accountNumber, status, errorData,errorMessage } = req.body;
 
     try {
-        const collateralObject = {
+        const corporateObject = {
             accountNumber,
             status,
-            errorData,
+            errorData:[]
         };
 
         if (errorData) {
-            collateralObject.errorData = errorData;
+            corporateObject.errorInformationMessage=errorMessage
+            corporateObject.errorData = errorData;
         }
         const response = await CorporateModal.findOneAndUpdate(
             { accountNumber },
-            { $set: collateralObject },
+            { $set: corporateObject },
             { upsert: true, new: true }
         );
 

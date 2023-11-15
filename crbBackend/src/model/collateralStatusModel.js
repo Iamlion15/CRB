@@ -5,13 +5,17 @@ const CollateralStatusSchema = new mongoose.Schema({
             type: String,
             required: true
       },
-      loanId: {
+      accountNumber: {
             type: String,
             required: true
       },
       status: {
             type: String,
             required: true
+      },
+      errorInformationMessage:{
+            type:String,
+            default:"Failed validation, record has validation errors"
       },
       errorData:{
             errorMessage:String,
